@@ -1,0 +1,141 @@
+#include <Wire.h>
+#include <DS3231.h> 
+#include<Servo.h>
+Servo motor;
+int p=0;
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2); 
+DS3231 clock;
+RTCDateTime dt;
+void setup()
+{lcd.begin(); 
+lcd.backlight();
+Serial.begin(9600);
+ motor.attach(9);
+ motor.write(360);
+Serial.println("Initialize DS3231");;
+ clock.begin();
+ clock.armAlarm1(false); 
+clock.armAlarm2(false);
+ clock.clearAlarm1();
+ clock.clearAlarm2();
+clock.setAlarm1(0, 0, 0, 30, DS3231_MATCH_S);
+clock.setAlarm2(0, 11, 56,	DS3231_MATCH_H_M); 
+checkAlarms();}
+void checkAlarms()
+{
+ RTCAlarmTime a1;
+ RTCAlarmTime a2;
+ if (clock.isArmed1())
+{
+a1 = clock.getAlarm1(); 
+Serial.print("Alarm1 is triggered ");
+ switch (clock.getAlarmType1())
+{
+case DS3231_EVERY_SECOND:
+Serial.println("every second");
+ break;
+case DS3231_MATCH_S:
+ Serial.print("when seconds match: ");
+Serial.println(clock.dateFormat("	: :s", a1));
+ break;
+case DS3231_MATCH_M_S:
+Serial.print("when minutes and sencods match: "); 
+Serial.println(clock.dateFormat("	:i:s", a1)); break;
+case DS3231_MATCH_H_M_S:
+Serial.print("when hours, minutes and seconds match: ");
+ Serial.println(clock.dateFormat("	H:i:s", a1)); 
+break;
+case DS3231_MATCH_DT_H_M_S:
+Serial.print("when date, hours, minutes and seconds match: "); 
+Serial.println(clock.dateFormat("d H:i:s", a1));
+break;
+case DS3231_MATCH_DY_H_M_S:
+Serial.print("when day of week, hours, minutes and seconds match: ");
+ Serial.println(clock.dateFormat("l H:i:s", a1));
+break; default:
+Serial.println("UNKNOWN RULE"); break;
+}
+ }
+else
+{
+Serial.println("Alarm1 is disarmed."); 
+}
+ if (clock.isArmed2())
+{
+a2 = clock.getAlarm2(); 
+Serial.print("Alarm2 is triggered ");
+ switch (clock.getAlarmType2())
+{
+ case DS3231_EVERY_MINUTE:
+Serial.println("every minute");
+ break;
+case DS3231_MATCH_M:
+Serial.print("when minutes match: "); 
+Serial.println(clock.dateFormat("	:i:s", a2)); 
+break;
+case DS3231_MATCH_H_M: Serial.print("when hours and minutes match:");
+ Serial.println(clock.dateFormat("	H:i:s", a2)); 
+break;
+case DS3231_MATCH_DT_H_M:
+Serial.print("when date, hours and minutes match: "); 
+Serial.println(clock.dateFormat("d H:i:s", a2));
+ break;
+case DS3231_MATCH_DY_H_M:
+Serial.println("when day of week, hours and minutes match: ");
+ Serial.print(clock.dateFormat("l H:i:s", a2));
+break; default:
+Serial.println("UNKNOWN RULE"); break;
+ 
+}
+}
+else
+{
+Serial.println("Alarm2 is disarmed.");
+ }
+}
+ void loop()
+{
+ dt = clock.getDateTime(); 
+Serial.print("Raw data: "); 
+Serial.print(dt.year);
+ Serial.print("-");
+ Serial.print(dt.month);
+ Serial.print("-");
+ Serial.print(dt.day);	
+Serial.print(" ");
+ Serial.print(dt.hour);
+ Serial.print(":");
+ 
+Serial.print(dt.minute); 
+Serial.print(":");
+ Serial.print(dt.second); 
+Serial.println("");
+ lcd.clear();
+lcd.print("22-"); 
+lcd.print(dt.month);
+ lcd.print("-");
+lcd.print(dt.day);
+lcd.print(" ");
+lcd.print(dt.hour);
+ lcd.print(":");
+lcd.print(dt.minute);
+ lcd.print(":");
+ lcd.print(dt.second); 
+lcd.println("");
+ if (clock.isAlarm1())
+{
+ Serial.println("FOOD FEEDING");
+ lcd.setCursor (0,1);
+lcd.println(" FOOD FEEDING ");
+ for(p=0;p<360;p++)
+{motor.write(p);
+delay(20);}
+{ delay(1000);}}
+if (clock.isAlarm2())
+{Serial.println("FOOD FEEDING"); lcd.setCursor (0,1);
+lcd.print(" FOOD FEEDING "); for(p=0;p<360;p++)
+{motor.write(p);
+delay(20);}
+{ delay(1000);}} delay(1000);}
